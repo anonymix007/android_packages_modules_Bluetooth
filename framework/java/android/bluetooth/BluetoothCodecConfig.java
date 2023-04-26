@@ -41,6 +41,7 @@ public final class BluetoothCodecConfig implements Parcelable {
     @IntDef(prefix = "SOURCE_CODEC_TYPE_",
         value = {SOURCE_CODEC_TYPE_SBC, SOURCE_CODEC_TYPE_AAC, SOURCE_CODEC_TYPE_APTX,
             SOURCE_CODEC_TYPE_APTX_HD, SOURCE_CODEC_TYPE_LDAC, SOURCE_CODEC_TYPE_LC3,
+            SOURCE_CODEC_TYPE_LHDCV3, SOURCE_CODEC_TYPE_LHDCV2, SOURCE_CODEC_TYPE_LHDCV5,
             SOURCE_CODEC_TYPE_INVALID,
             SOURCE_CODEC_TYPE_APTX_ADAPTIVE,
             SOURCE_CODEC_TYPE_APTX_TWSP,
@@ -100,12 +101,29 @@ public final class BluetoothCodecConfig implements Parcelable {
 
     public static final int SOURCE_CODEC_TYPE_APTX_TWSP = SOURCE_CODEC_TYPE_MAX + 1;
 
-    public static final int SOURCE_QVA_CODEC_TYPE_MAX = SOURCE_CODEC_TYPE_MAX + 2;
+    // Savitech LHDC -- START
+    /**
+     * Source codec type LHDCV3(V4).
+     */
+    public static final int SOURCE_CODEC_TYPE_LHDCV3 = SOURCE_CODEC_TYPE_MAX + 2;
+
+    /**
+     * Source codec type LHDCV2.
+     */
+    public static final int SOURCE_CODEC_TYPE_LHDCV2 = SOURCE_CODEC_TYPE_MAX + 3;
+
+    /**
+     * Source codec type LHDCV5.
+     */
+    public static final int SOURCE_CODEC_TYPE_LHDCV5 = SOURCE_CODEC_TYPE_MAX + 4;
+    // Savitech LHDC -- END
+
+    public static final int SOURCE_QVA_CODEC_TYPE_MAX = SOURCE_CODEC_TYPE_MAX + 5;
 
     /* CELT is not an A2DP Codec and only used to fetch encoder
     ** format for BA usecase, moving out of a2dp codec value list
     */
-    public static final int SOURCE_CODEC_TYPE_CELT = 10;
+    public static final int SOURCE_CODEC_TYPE_CELT = 13;
 
     /** @hide */
     @IntDef(prefix = "CODEC_PRIORITY_", value = {
@@ -498,6 +516,14 @@ public final class BluetoothCodecConfig implements Parcelable {
                 return "aptX TWS+";
             case SOURCE_CODEC_TYPE_OPUS:
                 return "Opus";
+            // Savitech LHDC -- START
+            case SOURCE_CODEC_TYPE_LHDCV2:
+                return "LHDC V2";
+            case SOURCE_CODEC_TYPE_LHDCV3:
+                return "LHDC V3";
+            case SOURCE_CODEC_TYPE_LHDCV5:
+                return "LHDC V5";
+            // Savitech LHDC -- END
             case SOURCE_CODEC_TYPE_INVALID:
                 return "INVALID CODEC";
             default:
@@ -694,7 +720,10 @@ public final class BluetoothCodecConfig implements Parcelable {
     public boolean sameAudioFeedingParameters(BluetoothCodecConfig other) {
         return (other != null && other.mSampleRate == mSampleRate
                 && other.mBitsPerSample == mBitsPerSample
-                && other.mChannelMode == mChannelMode);
+                && other.mChannelMode == mChannelMode
+                && other.mCodecSpecific1 == mCodecSpecific1
+                && other.mCodecSpecific2 == mCodecSpecific2
+                && other.mCodecSpecific3 == mCodecSpecific3);
     }
 
     /**
@@ -734,6 +763,8 @@ public final class BluetoothCodecConfig implements Parcelable {
      * Checks whether the codec specific parameters are the same.
      * <p> Currently, only AAC VBR and LDAC Playback Quality on CodecSpecific1
      * are compared.
+     * <p> For LHDC, Playback Quality on CodecSpecific1;
+     * Low Latency Mode at CodecSpecific2; Other audio features at CodecSpecific3.
      *
      * @param other the codec config to compare against
      * @return {@code true} if the codec specific parameters are the same, {@code false} otherwise
@@ -750,14 +781,26 @@ public final class BluetoothCodecConfig implements Parcelable {
                 if (mCodecSpecific1 != other.mCodecSpecific1) {
                     return false;
                 }
+                return true;
             case SOURCE_CODEC_TYPE_APTX_ADAPTIVE:
                 if (other.mCodecSpecific4 > 0) {
                     return false;
                 }
+                return true;
             case SOURCE_CODEC_TYPE_OPUS:
               if (mCodecSpecific1 != other.mCodecSpecific1) {
                 return false;
               }
+              return true;
+            case SOURCE_CODEC_TYPE_LHDCV2:
+            case SOURCE_CODEC_TYPE_LHDCV3:
+            case SOURCE_CODEC_TYPE_LHDCV5:
+              if (mCodecSpecific1 != other.mCodecSpecific1 ||
+                  mCodecSpecific2 != other.mCodecSpecific2 ||
+                  mCodecSpecific3 != other.mCodecSpecific3) {
+                      return false;
+                  }
+              return true;
             default:
                 return true;
         }
