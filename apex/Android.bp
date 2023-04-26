@@ -37,6 +37,11 @@ apex {
         },
     },
 
+    native_shared_libs: [
+      "liblhdcBT_enc",
+      "liblhdcv5BT_enc"
+    ],
+
     prebuilts: [
         "audio_set_configurations_bfbs",
         "audio_set_configurations_json",

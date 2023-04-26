@@ -34,6 +34,7 @@ typedef struct {
   AAudioStream* stream;
   int bitsPerSample;
   int channelCount;
+  aaudio_format_t format; // Savitech LHDC_A2DP_SINK patch
   float* buffer;
   size_t bufferLength;
   float gain;
@@ -56,9 +57,13 @@ void* BtifAvrcpAudioTrackCreate(int trackFreq, int bitsPerSample,
 
   AAudioStreamBuilder* builder;
   AAudioStream* stream;
+  aaudio_format_t format; // Savitech LHDC_A2DP_SINK patch
   aaudio_result_t result = AAudio_createStreamBuilder(&builder);
   AAudioStreamBuilder_setSampleRate(builder, trackFreq);
-  AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_FLOAT);
+  // Savitech LHDC_A2DP_SINK patch - START
+  format = AAUDIO_FORMAT_PCM_FLOAT;
+  AAudioStreamBuilder_setFormat(builder, format);
+  // Savitech LHDC_A2DP_SINK patch - END
   AAudioStreamBuilder_setChannelCount(builder, channelCount);
   AAudioStreamBuilder_setSessionId(builder, AAUDIO_SESSION_ID_ALLOCATE);
   AAudioStreamBuilder_setPerformanceMode(builder,
@@ -72,6 +77,7 @@ void* BtifAvrcpAudioTrackCreate(int trackFreq, int bitsPerSample,
   trackHolder->stream = stream;
   trackHolder->bitsPerSample = bitsPerSample;
   trackHolder->channelCount = channelCount;
+  trackHolder->format = format; // Savitech LHDC_A2DP_SINK patch
   trackHolder->bufferLength =
       trackHolder->channelCount * AAudioStream_getBufferSizeInFrames(stream);
   trackHolder->gain = kMaxTrackGain;
@@ -171,7 +177,7 @@ static size_t transcodeQ15ToFloat(uint8_t* buffer, size_t length,
   size_t sampleSize = sampleSizeFor(trackHolder);
   size_t i = 0;
   const float scaledGain = trackHolder->gain * kScaleQ15ToFloat;
-  for (; i <= length / sampleSize; i++) {
+  for (; i < length / sampleSize; i++) {
     trackHolder->buffer[i] = ((int16_t*)buffer)[i] * scaledGain;
   }
   return i * sampleSize;
@@ -184,7 +190,8 @@ static size_t transcodeQ23ToFloat(uint8_t* buffer, size_t length,
   const float scaledGain = trackHolder->gain * kScaleQ23ToFloat;
   for (; i <= length / sampleSize; i++) {
     size_t offset = i * sampleSize;
-    int32_t sample = *((int32_t*)(buffer + offset - 1)) & 0x00FFFFFF;
+    int32_t sample = *((int32_t*)(buffer + offset - 1)) & 0xFFFFFF00;
+    sample = sample >> 8;
     trackHolder->buffer[i] = sample * scaledGain;
   }
   return i * sampleSize;
@@ -195,7 +202,7 @@ static size_t transcodeQ31ToFloat(uint8_t* buffer, size_t length,
   size_t sampleSize = sampleSizeFor(trackHolder);
   size_t i = 0;
   const float scaledGain = trackHolder->gain * kScaleQ31ToFloat;
-  for (; i <= length / sampleSize; i++) {
+  for (; i < length / sampleSize; i++) {
     trackHolder->buffer[i] = ((int32_t*)buffer)[i] * scaledGain;
   }
   return i * sampleSize;
@@ -231,6 +238,9 @@ int BtifAvrcpAudioTrackWriteData(void* handle, void* audioBuffer,
   size_t sampleSize = sampleSizeFor(trackHolder);
   int transcodedCount = 0;
   do {
+    // only PCM float
+    CHECK(trackHolder->format == AAUDIO_FORMAT_PCM_FLOAT);
+
     transcodedCount +=
         transcodeToPcmFloat(((uint8_t*)audioBuffer) + transcodedCount,
                             bufferLength - transcodedCount, trackHolder);
