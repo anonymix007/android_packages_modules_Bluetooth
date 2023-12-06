@@ -67,6 +67,7 @@ typedef enum {
   BTAV_A2DP_CODEC_INDEX_SOURCE_LHDCV2,
   BTAV_A2DP_CODEC_INDEX_SOURCE_LHDCV5,
   BTAV_A2DP_CODEC_INDEX_SOURCE_FLAC,
+  BTAV_A2DP_CODEC_INDEX_SOURCE_LC3PLUS_HR,
   BTAV_A2DP_QVA_CODEC_INDEX_SOURCE_MAX,
 
   BTAV_A2DP_CODEC_INDEX_SINK_MIN =
@@ -215,6 +216,9 @@ struct btav_a2dp_codec_config_t {
       // Savitech Patch - END
       case BTAV_A2DP_CODEC_INDEX_SOURCE_FLAC:
         codec_name_str = "FLAC";
+        break;
+      case BTAV_A2DP_CODEC_INDEX_SOURCE_LC3PLUS_HR:
+        codec_name_str = "LC3plus HR";
         break;
       case BTAV_A2DP_CODEC_INDEX_MAX:
         codec_name_str = "Unknown(CODEC_INDEX_MAX)";
