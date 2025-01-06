@@ -35,3 +35,9 @@ RequiresPermission: android.bluetooth.BluetoothAdapter#getAddress():
     Method 'getAddress' documentation mentions permissions without declaring @RequiresPermission
 RequiresPermission: android.bluetooth.BluetoothDevice#setAlias(String):
     Method 'setAlias' documentation mentions permissions already declared by @RequiresPermission
+
+
+DeprecationMismatch: android.bluetooth.BluetoothCodecConfig#SOURCE_CODEC_TYPE_LHDCV3:
+    Field BluetoothCodecConfig.SOURCE_CODEC_TYPE_LHDCV3: @Deprecated annotation (present) and @deprecated doc tag (not present) do not match
+DeprecationMismatch: android.bluetooth.BluetoothCodecConfig#SOURCE_CODEC_TYPE_LHDCV5:
+    Field BluetoothCodecConfig.SOURCE_CODEC_TYPE_LHDCV5: @Deprecated annotation (present) and @deprecated doc tag (not present) do not match

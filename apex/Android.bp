@@ -27,6 +27,14 @@ apex {
     ],
     apps: ["Bluetooth"],
 
+    // savitech LHDC
+    native_shared_libs: [
+        "liblhdc",
+        "liblhdcv5,
+        "liblhdcBT_enc",
+        "liblhdcv5BT_enc",
+    ],
+
     multilib: {
         first: {
             // Extractor process runs only with the primary ABI.
